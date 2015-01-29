@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/xswordsx/News-scraper/issues"
   },
-  "homepage": "https://github.com/xswordsx/News-scraper"
+  "homepage": "https://github.com/xswordsx/News-scraper",
+  "dependencies": {
+    "underscore": "^1.7.0"
+  }
 }
