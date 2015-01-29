@@ -119,9 +119,14 @@ var Notifier = function (dbOptions, mailOptions) {
 				emailText += '\n---------------------------\n';
 			});
 
+			if(newsToSend.stories.length > 0) {
+				emailText += '\n\n===========================\n\n';
+			}
+
 			newsToSend.stories.forEach(function (story) {
 				emailText += 'STORY: ' + story.title + '\n';
 				emailText += 'BY: ' + story.by + '\n';
+				emailText += 'URL: ' + story.url + '\n';
 				emailText += '\n\n\n';
 				emailText += story.text;
 				emailText += '\n---------------------------\n';
