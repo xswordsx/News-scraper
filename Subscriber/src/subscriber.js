@@ -4,7 +4,7 @@
  * @returns {object}
  * @constructor
  */
-var Subscriber = function (dbOptions) {
+var Subscriber = function (dbOptions, mailOptions) {
 	'use strict';
 	var q = require('q');
 	var url = require('url');
@@ -24,6 +24,29 @@ var Subscriber = function (dbOptions) {
 		}
 	}
 
+	var _mailSettings = {
+		email: 'lorem@ipsum.org',
+		host: 'ipsum.org',
+		port: 465,
+		secure: true,
+		tls: {
+			rejectUnauthorized: false
+		},
+		auth: {
+			user: 'lorem',
+			pass: 'ipsum'
+		}
+	};
+
+	for(var prop in mailOptions) {
+		if(mailOptions.hasOwnProperty(prop)) {
+			_mailSettings[prop] = mailOptions[prop];
+		}
+	}
+
+	var nodemailer = require('nodemailer');
+	var mailer = nodemailer.createTransport(_mailSettings);
+
 	var _Subscriber = Object.create(null);
 
 	var connectionString = url.format(_settings);
@@ -33,7 +56,11 @@ var Subscriber = function (dbOptions) {
 
 
 
-	_Subscriber.subscribe = function (email, keywords, type) {
+	_Subscriber.subscribe = function (email, keywords, type, confirmURL) {
+
+		if(typeof confirmURL !== 'function') {
+			confirmURL = function(id) { return "http://localhost/confirm/" + id; }
+		}
 
 		var defered = q.defer();
 
@@ -41,7 +68,7 @@ var Subscriber = function (dbOptions) {
 			id: uid(18),
 			confirmationID: uid(18),
 			email: email,
-			keyworsd: keywords,
+			keywords: keywords,
 			type: type,
 			confirmed: false
 		};
@@ -50,9 +77,34 @@ var Subscriber = function (dbOptions) {
 			if(err) {
 				defered.reject(err);
 			} else {
-				defered.resolve({
-					email: email,
-					subscriberId: subscriber.id
+				var message = {
+					from: 'HackerNews Scraper <' + _mailSettings.email + '>',
+					to: email,
+					subject: '[Confirm email]',
+					text: [
+						"Hello,",
+						"you have been subscribed for the following HackerNews items:",
+						"Item types: " + type.join(', '),
+						"Keywords: " + keywords.join(', '),
+						'\n',
+						'If this data is correct, please confirm your email, by visiting: ',
+						confirmURL(subscriber.confirmationID),
+						'\n',
+						'Otherwise, please ignore this email.'
+					].join('\n')
+				};
+
+				mailer.sendMail(message, function (err) {
+					if(err) {
+						//defered.reject("Could not send confirmation email to: " + email);
+						defered.reject(err);
+						collection.remove({id: subscriber.id}, true);
+					} else {
+						defered.resolve({
+							email: email,
+							subscriberId: subscriber.id
+						});
+					}
 				});
 			}
 		});
@@ -72,6 +124,27 @@ var Subscriber = function (dbOptions) {
 		});
 
 		return defered.promise;
+	};
+
+	_Subscriber.confirm = function (email, confirmationId) {
+
+		var defered = q.defer();
+
+		collection.findAndModify({
+			query: {id: confirmationId, email: email},
+			update: {$set: {confirmed: true}}
+		}, function (err, doc, lastErrorLog) {
+			if(err || lastErrorLog) {
+				defered.reject(err || lastErrorLog);
+			} else if(!doc) {
+				defered.reject('Cannot confirm for email: ' + email);
+			} else {
+				defered.resolve(doc.id);
+			}
+		});
+
+		return defered.promise;
+
 	};
 
 	_Subscriber.listSubscribers = function () {
