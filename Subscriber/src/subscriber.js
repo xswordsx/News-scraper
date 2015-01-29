@@ -68,7 +68,7 @@ var Subscriber = function (dbOptions, mailOptions) {
 			id: uid(18),
 			confirmationID: uid(18),
 			email: email,
-			keywords: keywords,
+			keywords: keywords.map(function(keyword){ return keyword.trim().toLowerCase() }).sort(function (a, b) { return a - b; }),
 			type: type,
 			confirmed: false
 		};
@@ -132,7 +132,10 @@ var Subscriber = function (dbOptions, mailOptions) {
 
 		collection.findAndModify({
 			query: {id: confirmationId, email: email},
-			update: {$set: {confirmed: true}}
+			update: {
+				$set: {confirmed: true},
+				$unset: {confirmationID: ""}
+			}
 		}, function (err, doc, lastErrorLog) {
 			if(err || lastErrorLog) {
 				defered.reject(err || lastErrorLog);
