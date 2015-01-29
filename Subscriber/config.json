@@ -1,0 +1,8 @@
+{
+  "db": {
+    "collectionName": "subscribers",
+    "hostname": "localhost",
+    "port": 27017,
+    "pathname": "/subscribers"
+  }
+}

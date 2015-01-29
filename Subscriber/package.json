@@ -1,0 +1,22 @@
+{
+  "name": "Subscriber",
+  "version": "0.0.1",
+  "description": "A subscriber module for the HackerNews site.",
+  "main": "index.js",
+  "scripts": {
+    "test": "grunt test-n-cover"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xswordsx/News-scraper"
+  },
+  "author": "Ivan Latunov <xswordsx@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/xswordsx/News-scraper/issues"
+  },
+  "homepage": "https://github.com/xswordsx/News-scraper",
+  "dependencies": {
+    "uid-safe": "^1.0.2"
+  }
+}
