@@ -1,0 +1,22 @@
+{
+  "name": "Scraper",
+  "version": "0.0.1",
+  "description": "A scraper bot for the HackerNews website.",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "grunt build-n-test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xswordsx/News-scraper"
+  },
+  "author": "Ivan Latunov <xswordsx@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/xswordsx/News-scraper/issues"
+  },
+  "homepage": "https://github.com/xswordsx/News-scraper"
+}
