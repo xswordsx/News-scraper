@@ -1,0 +1,19 @@
+{
+  "name": "Notifier",
+  "version": "0.0.1",
+  "description": "Notifier for the news-scrape project.",
+  "main": "index.js",
+  "scripts": {
+    "test": "grunt build-n-test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xswordsx/News-scraper"
+  },
+  "author": "Ivan Latunov <xswordsx@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/xswordsx/News-scraper/issues"
+  },
+  "homepage": "https://github.com/xswordsx/News-scraper"
+}
