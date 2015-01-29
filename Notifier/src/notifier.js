@@ -18,7 +18,7 @@ var Notifier = function (dbOptions, mailOptions) {
 		port: 27017,
 		pathname: "/scraper"
 	};
-
+	//Overwrite default settings
 	for(var prop in dbOptions) {
 		if(dbOptions.hasOwnProperty(prop)) {
 			_settings[prop] = dbOptions[prop];
@@ -38,7 +38,7 @@ var Notifier = function (dbOptions, mailOptions) {
 			pass: 'ipsum'
 		}
 	};
-
+	//Overwrite default mail settings
 	for(var prop in mailOptions) {
 		if(mailOptions.hasOwnProperty(prop)) {
 			_mailSettings[prop] = mailOptions[prop];
@@ -56,7 +56,47 @@ var Notifier = function (dbOptions, mailOptions) {
 	var subscribersCollection = db.collection(_settings.subscribersCollectionName);
 	var newsCollection = db.collection(_settings.newsCollectionName);
 
+
 	var _Notifier = Object.create(null);
+
+
+	var _sendEmail = function(email, comments, stories, keywords, mailer, unsubscribeURL) {
+		var emailText = "You have " +
+			comments.length + " new comments and " +
+			stories.length + " new stories to read.\n\n";
+
+		emailText += 'Keywords matched: ' + keywords + '\n\n';
+
+		comments.forEach(function (comment) {
+			emailText += 'COMMENT: ' + comment.text + '\n';
+			emailText += 'BY: ' + comment.by + '\n';
+			emailText += 'FROM STORY: ' + comment.storyUrl + '\n';
+			emailText += '\n---------------------------\n';
+		});
+
+		if(stories.length > 0) {
+			emailText += '\n\n===========================\n\n';
+		}
+
+		stories.forEach(function (story) {
+			emailText += 'STORY: ' + story.title + '\n';
+			emailText += 'BY: ' + story.by + '\n';
+			emailText += 'URL: ' + story.url + '\n';
+			emailText += '\n\n\n';
+			emailText += story.text;
+			emailText += '\n---------------------------\n';
+		});
+
+		emailText += '\n\n\nIf you wish to not receive these messages, please visit: ';
+		emailText += unsubscribeURL + '\n';
+
+		mailer.sendMail({
+			from: "HackerNews Scraper <" + _mailSettings.email + ">",
+			to: email,
+			subject: "[New HackerNews stories/comments]",
+			text: emailText
+		}, function(err, success){/*ignore for now*/});
+	};
 
 	var _sendEmails = function(subscribers, news, mailer, unsubscribeURL) {
 
@@ -105,45 +145,14 @@ var Notifier = function (dbOptions, mailOptions) {
 				}
 			}
 
+			var keywords = _.uniq(keywordsFound).join(', ');
 
-			var emailText = "You have " +
-				newsToSend.comments.length + " new comments and " +
-				newsToSend.stories.length + " new stories to read.\n\n";
+			_sendEmail(subscriber.email, newsToSend.comments, newsToSend.stories, keywords, mailer, unsubscribeURL(subscriber.id));
 
-			emailText += 'Keywords matched: ' + _.uniq(keywordsFound).join(', ') + '\n\n';
-
-			newsToSend.comments.forEach(function (comment) {
-				emailText += 'COMMENT: ' + comment.text + '\n';
-				emailText += 'BY: ' + comment.by + '\n';
-				emailText += 'FROM STORY: ' + comment.storyUrl + '\n';
-				emailText += '\n---------------------------\n';
-			});
-
-			if(newsToSend.stories.length > 0) {
-				emailText += '\n\n===========================\n\n';
-			}
-
-			newsToSend.stories.forEach(function (story) {
-				emailText += 'STORY: ' + story.title + '\n';
-				emailText += 'BY: ' + story.by + '\n';
-				emailText += 'URL: ' + story.url + '\n';
-				emailText += '\n\n\n';
-				emailText += story.text;
-				emailText += '\n---------------------------\n';
-			});
-
-			emailText += '\n\n\nIf you wish to not receive these messages, please visit: ';
-			emailText += unsubscribeURL(subscriber.id) + '\n';
-
-			mailer.sendMail({
-				from: "HackerNews Scraper <" + _mailSettings.email + ">",
-				to: subscriber.email,
-				subject: "[New HackerNews stories/comments]",
-				text: emailText
-			}, function(err, success){/*ignore for now*/});
 		}
 	};
 
+	
 	_Notifier.notify = function (from) {
 		var subscribers = q.defer();
 		var news = q.defer();
@@ -168,7 +177,7 @@ var Notifier = function (dbOptions, mailOptions) {
 
 		q.all([subscribers.promise, news.promise]).then(
 			function(result) {
-				_sendEmails.apply(null, result);
+				_sendEmails(result[0], result[1], mailer, undefined);
 			},
 			function(failReason) {
 				notified.reject(failReason);
