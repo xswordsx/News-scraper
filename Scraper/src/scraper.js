@@ -46,19 +46,27 @@ var Scraper = function (settings) {
 	var _queryString = 'https://hacker-news.firebaseio.com/v0/';
 	var _Scraper = Object.create(null);
 
-	//Initial value
-	request.get(_queryString + 'maxitem.json', function (err, res, maxItem) {
-		if(!err && res.statusCode == 200) {
-			_lastItem = Number(maxItem);
-		}
-	});
+	_Scraper.initMaxItem = function () {
+		var defered = q.defer();
+
+		request.get('http://hacker-news.firebaseio.com/v0/maxitem.json', {}, function(err, response, body){
+			if(err || response.statusCode !== 200) {
+				defered.reject(err);
+			} else {
+				_lastItem = Number(body);
+				defered.resolve(_lastItem);
+			}
+		});
+
+		return defered.promise;
+	};
 
 	_Scraper.scrape = function () {
 
 		var defered = q.defer();
 
 
-		request.get(_queryString + 'maxitem.json',{}, function(error, response, body){
+		request.get(_queryString + 'maxitem.json',{} , function(error, response, body){
 			if(error || response.statusCode !== 200) {
 				defered.reject(error);
 			} else {

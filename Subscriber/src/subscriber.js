@@ -145,7 +145,7 @@ var Subscriber = function (dbOptions, mailOptions) {
 			if(err) {
 				defered.reject(err);
 			} else if(!doc) {
-				defered.reject('Cannot confirm for email: ' + email);
+				defered.reject('Cannot confirm for subscription: ' + id);
 			} else {
 				defered.resolve(doc.id);
 			}

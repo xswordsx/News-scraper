@@ -15,7 +15,7 @@ var subscriberSettings = require('../Subscriber/config');
 var scraperSettings = require('../Scraper/config');
 
 var notifier = Notifer(notifierSettings.db, notifierSettings.mailer);
-var scraper = Scraper(scraperSettings);
+var scraper = Scraper(scraperSettings.db);
 var subscriber = Subscriber(subscriberSettings.db, subscriberSettings.mailer);
 
 var connectionString = url.format(settings.db);
@@ -25,17 +25,24 @@ var db = mongojs(connectionString, [settings.db.collectionName]);
 var collection = db.collection(settings.db.collectionName);
 
 var asyncLoop = function() {
-	scraper.scrape().then(function(news) {
-		collection.insert(news, function(err, success) {
-			if(!err) {
-				sortedNews = news.sort(function(a, b) {return a.id - b.id});
-				notifier.notify(sortedNews[0].id);
-			}
-		});
-	});
+	console.log('Scraping HackerNews...');
+	scraper.scrape().then(
+		function(news) {
+			console.log('Scraped and got: ', JSON.stringify(news, undefined, 2));
+			collection.insert(news, function(err, success) {
+				if(!err) {
+					sortedNews = news.sort(function(a, b) {return a.id - b.id});
+					notifier.notify(sortedNews[0].id);
+				}
+			});
+		},
+		function(error) {
+			console.log("Unable to scrape: ", error && error.code);
+		}
+	);
 };
 
-var asyncPid = setInterval(asyncLoop, 6000);
+var asyncPid;
 
 var jsonBody = bodyParser.json();
 
@@ -86,6 +93,15 @@ app.post('/unsubscribe/:unsubscribeID', jsonBody, function (req, res) {
 });
 
 app.listen(settings.app.port, undefined, function() {
+	scraper.initMaxItem().then(
+		function() {
+			asyncPid = setInterval(asyncLoop, 1 * 1000 * 60 * 2);
+		},
+		function(error) {
+			console.error("unable to retrieve maxItem: ", error.code);
+			process.exit(2);
+		});
+
 	console.log("Looper listening on port", settings.app.port);
 });
 
