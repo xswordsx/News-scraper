@@ -49,7 +49,7 @@ var Scraper = function (settings) {
 	_Scraper.initMaxItem = function () {
 		var defered = q.defer();
 
-		request.get('http://hacker-news.firebaseio.com/v0/maxitem.json', {}, function(err, response, body){
+		request.get('https://hacker-news.firebaseio.com/v0/maxitem.json', {}, function(err, response, body){
 			if(err || response.statusCode !== 200) {
 				defered.reject(err);
 			} else {
@@ -96,8 +96,8 @@ var Scraper = function (settings) {
 							}
 						});
 					});
+					_lastItem = newMax;
 					q.all(promiseList).then(function(news) {
-						_lastItem = newMax;
 						defered.resolve(news);
 					},
 						defered.reject

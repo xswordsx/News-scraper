@@ -31,8 +31,12 @@ var asyncLoop = function() {
 			console.log('Scraped and got: ', JSON.stringify(news, undefined, 2));
 			collection.insert(news, function(err, success) {
 				if(!err) {
-					sortedNews = news.sort(function(a, b) {return a.id - b.id});
-					notifier.notify(sortedNews[0].id);
+					var id;
+					if(Array.isArray(news))
+						id = news.sort(function(a, b) {return a.id - b.id})[0].id;
+					else
+						id = news.id;
+					notifier.notify(id);
 				}
 			});
 		},
@@ -95,7 +99,9 @@ app.post('/unsubscribe/:unsubscribeID', jsonBody, function (req, res) {
 app.listen(settings.app.port, undefined, function() {
 	scraper.initMaxItem().then(
 		function() {
-			asyncPid = setInterval(asyncLoop, 1 * 1000 * 60 * 2);
+			asyncLoop();
+			               					  /* Minutes */
+			asyncPid = setInterval(asyncLoop, 1 * 1000 * 60 * settings.app.scrapeTime);
 		},
 		function(error) {
 			console.error("unable to retrieve maxItem: ", error.code);
