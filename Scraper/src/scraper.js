@@ -17,7 +17,7 @@ var Scraper = function (settings) {
 		pathname: "/scraper"
 	};
 
-	var _lastItem = 8969715;
+	var _lastItem = Number.POSITIVE_INFINITY;
 	//Overwrite default settings
 	for(var prop in settings) {
 		if(settings.hasOwnProperty(prop)) {
@@ -45,6 +45,13 @@ var Scraper = function (settings) {
 
 	var _queryString = 'https://hacker-news.firebaseio.com/v0/';
 	var _Scraper = Object.create(null);
+
+	//Initial value
+	request.get(_queryString + 'maxitem.json', function (err, res, maxItem) {
+		if(!err && res.statusCode == 200) {
+			_lastItem = Number(maxItem);
+		}
+	});
 
 	_Scraper.scrape = function () {
 
@@ -81,7 +88,12 @@ var Scraper = function (settings) {
 							}
 						});
 					});
-					q.all(promiseList).then(defered.resolve, defered.reject);
+					q.all(promiseList).then(function(news) {
+						_lastItem = newMax;
+						defered.resolve(news);
+					},
+						defered.reject
+					);
 				}
 			}
 		});
