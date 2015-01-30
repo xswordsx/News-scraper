@@ -26,16 +26,16 @@ var Notifier = function (dbOptions, mailOptions) {
 	}
 
 	var _mailSettings = {
-		email: 'lorem@ipsum.org',
-		host: 'ipsum.org',
+		email: 'hnscraper@abv.bg',
+		host: 'smtp.abv.bg',
 		port: 465,
 		secure: true,
 		tls: {
 			rejectUnauthorized: false
 		},
 		auth: {
-			user: 'lorem',
-			pass: 'ipsum'
+			user: 'hnscraper',
+			pass: 'hacker-news-scraper'
 		}
 	};
 	//Overwrite default mail settings
@@ -152,7 +152,7 @@ var Notifier = function (dbOptions, mailOptions) {
 		}
 	};
 
-	
+
 	_Notifier.notify = function (from) {
 		var subscribers = q.defer();
 		var news = q.defer();
