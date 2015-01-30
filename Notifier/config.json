@@ -15,7 +15,7 @@
       "rejectUnauthorized": false
     },
     "auth": {
-      "user": "hnscraper",
+      "user": "hnscraper@abv.bg",
       "pass": "hacker-news-scraper"
     }
   }

@@ -10,9 +10,13 @@ var Notifer = require('../Notifier/index');
 var Subscriber = require('../Subscriber/index');
 var Scraper = require('../Scraper/index');
 
-var notifer = Notifer();
-var scraper = Scraper();
-var subscriber = Subscriber();
+var notifierSettings = require('../Notifier/config');
+var subscriberSettings = require('../Subscriber/config');
+var scraperSettings = require('../Scraper/config');
+
+var notifier = Notifer(notifierSettings.db, notifierSettings.mailer);
+var scraper = Scraper(scraperSettings);
+var subscriber = Subscriber(subscriberSettings.db, subscriberSettings.mailer);
 
 var connectionString = url.format(settings.db);
 if(connectionString.indexOf('//') == 0)
@@ -25,14 +29,13 @@ var asyncLoop = function() {
 		collection.insert(news, function(err, success) {
 			if(!err) {
 				sortedNews = news.sort(function(a, b) {return a.id - b.id});
-				notifer.notify(sortedNews[0].id);
+				notifier.notify(sortedNews[0].id);
 			}
 		});
 	});
 };
 
-app.use('/subscribe', bodyParser);
-app.use('/unsubscribe', bodyParser);
+var jsonBody = bodyParser.json();
 
 app.get('/listSubscribers', function(req, res) {
 	subscriber.listSubscribers().then(
@@ -42,7 +45,7 @@ app.get('/listSubscribers', function(req, res) {
 		});
 });
 
-app.post('/subscribe', function(req, res) {
+app.post('/subscribe', bodyParser.json(), function (req, res) {
 	var testEmail = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/i;
 	var testType = /(comment)|(story)/i;
 	if(testEmail.test(req.body.email) == false) {
@@ -53,10 +56,14 @@ app.post('/subscribe', function(req, res) {
 		req.status(500).end('Invalid news type');
 		return;
 	}
-	subscriber.subscribe(req.body.email, req.body.keywords, req.body.type).then(res.json.bind(res));
+	subscriber.subscribe(req.body.email, req.body.keywords, req.body.type).then(
+		res.json.bind(res),
+		function(fail) {
+			res.status(500).end("There was an error, subscribing email " + req.body.email);
+		});
 });
 
-app.post('/unsubscribe/:unsubscribeID', function(req, res) {
+app.post('/unsubscribe/:unsubscribeID', jsonBody, function (req, res) {
 	subscriber.unsubscribe(req.params.unsubscribeID).then(
 		function(success) {
 			res.status(200).end('You were successfuly unsubscribed.');
