@@ -3,9 +3,9 @@
     "port": 3000
   },
   "db": {
-    "collectionName": "subscribers",
+    "collectionName": "news",
     "hostname": "localhost",
     "port": 27017,
-    "pathname": "/subscribers"
+    "pathname": "/scraper"
   }
 }
