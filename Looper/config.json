@@ -1,3 +1,11 @@
 {
-  "port": 3000
+  "app": {
+    "port": 3000
+  },
+  "db": {
+    "collectionName": "subscribers",
+    "hostname": "localhost",
+    "port": 27017,
+    "pathname": "/subscribers"
+  }
 }
