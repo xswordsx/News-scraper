@@ -59,7 +59,9 @@ var Subscriber = function (dbOptions, mailOptions) {
 	_Subscriber.subscribe = function (email, keywords, type, confirmURL) {
 
 		if(typeof confirmURL !== 'function') {
-			confirmURL = function(id) { return "http://localhost/confirm/" + id; }
+			confirmURL = function(subscriber) {
+				return "http://localhost:3000/confirm/" + subscriber.id + '/' + subscriber.confirmationID;
+			}
 		}
 
 		var defered = q.defer();
@@ -88,7 +90,7 @@ var Subscriber = function (dbOptions, mailOptions) {
 						"Keywords: " + keywords.join(', '),
 						'\n',
 						'If this data is correct, please confirm your email, by visiting: ',
-						confirmURL(subscriber.confirmationID),
+						confirmURL(subscriber),
 						'\n',
 						'Otherwise, please ignore this email.'
 					].join('\n')
@@ -126,19 +128,22 @@ var Subscriber = function (dbOptions, mailOptions) {
 		return defered.promise;
 	};
 
-	_Subscriber.confirm = function (email, confirmationId) {
+	_Subscriber.confirm = function (id, confirmationId) {
 
 		var defered = q.defer();
 
 		collection.findAndModify({
-			query: {id: confirmationId, email: email},
+			query: {
+				id: id,
+				confirmationID: confirmationId
+			},
 			update: {
 				$set: {confirmed: true},
 				$unset: {confirmationID: ""}
 			}
 		}, function (err, doc, lastErrorLog) {
-			if(err || lastErrorLog) {
-				defered.reject(err || lastErrorLog);
+			if(err) {
+				defered.reject(err);
 			} else if(!doc) {
 				defered.reject('Cannot confirm for email: ' + email);
 			} else {

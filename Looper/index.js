@@ -35,6 +35,8 @@ var asyncLoop = function() {
 	});
 };
 
+var asyncPid = setInterval(asyncLoop, 6000);
+
 var jsonBody = bodyParser.json();
 
 app.get('/listSubscribers', function(req, res) {
@@ -45,7 +47,17 @@ app.get('/listSubscribers', function(req, res) {
 		});
 });
 
-app.post('/subscribe', bodyParser.json(), function (req, res) {
+app.get('/confirm/:id/:confirmId', function(req, res) {
+	subscriber.confirm(req.params.id, req.params.confirmId).then(
+		function (pass) {
+			res.status(200).end('Your subscribtion was successfully confirmed.');
+		}, function(fail){
+			res.status(500).end(fail);
+		}
+	)
+});
+
+app.post('/subscribe', jsonBody, function (req, res) {
 	var testEmail = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/i;
 	var testType = /(comment)|(story)/i;
 	if(testEmail.test(req.body.email) == false) {
@@ -75,4 +87,8 @@ app.post('/unsubscribe/:unsubscribeID', jsonBody, function (req, res) {
 
 app.listen(settings.app.port, undefined, function() {
 	console.log("Looper listening on port", settings.app.port);
+});
+
+process.on('exit', function() {
+	clearInterval(asyncPid);
 });
