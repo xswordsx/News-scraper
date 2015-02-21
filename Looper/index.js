@@ -73,12 +73,13 @@ app.get('/confirm/:id/:confirmId', function(req, res) {
 
 app.post('/subscribe', jsonBody, function (req, res) {
 	var testEmail = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b/i;
-	var testType = /(comment)|(sotry)/i;
+	var testType = /(comment)|(story)/i;
 	if(testEmail.test(req.body.email) == false) {
 		res.status(500).end('Invalid email');
 		return;
 	}
-	if(req.body.type.reduce(testType.test) == false) {
+	if(!(req.body.type instanceof Array)
+		|| req.body.type.all(testType.test.bind(testType)) == false) {
 		req.status(500).end('Invalid news type');
 		return;
 	}
