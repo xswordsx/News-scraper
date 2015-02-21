@@ -29,6 +29,9 @@ var asyncLoop = function() {
 	scraper.scrape().then(
 		function(news) {
 			console.log('Scraped and got: ', JSON.stringify(news, undefined, 2));
+			if(news.length === 0) {
+				return;
+			}
 			collection.insert(news, function(err, success) {
 				if(!err) {
 					var id;
@@ -69,8 +72,8 @@ app.get('/confirm/:id/:confirmId', function(req, res) {
 });
 
 app.post('/subscribe', jsonBody, function (req, res) {
-	var testEmail = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/i;
-	var testType = /(comment)|(story)/i;
+	var testEmail = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b/i;
+	var testType = /(comment)|(sotry)/i;
 	if(testEmail.test(req.body.email) == false) {
 		res.status(500).end('Invalid email');
 		return;

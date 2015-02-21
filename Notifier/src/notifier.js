@@ -61,6 +61,11 @@ var Notifier = function (dbOptions, mailOptions) {
 
 
 	var _sendEmail = function(email, comments, stories, keywords, mailer, unsubscribeURL) {
+
+		if (comments.length + stories.length == 0) {
+			return;
+		}
+
 		var emailText = "You have " +
 			comments.length + " new comments and " +
 			stories.length + " new stories to read.\n\n";
