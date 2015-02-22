@@ -79,7 +79,7 @@ app.post('/subscribe', jsonBody, function (req, res) {
 		return;
 	}
 	if(!(req.body.type instanceof Array)
-		|| req.body.type.all(testType.test.bind(testType)) == false) {
+		|| req.body.type.every(testType.test.bind(testType)) == false) {
 		req.status(500).end('Invalid news type');
 		return;
 	}
