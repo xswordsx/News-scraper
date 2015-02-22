@@ -70,13 +70,13 @@ var Scraper = function (settings) {
 			if(error || response.statusCode !== 200) {
 				defered.reject(error);
 			} else {
-				if(!_lastItem) {
+				if(!_lastItem || _lastItem == Number.POSITIVE_INFINITY) {
 					_lastItem = Number(body);
 				} else {
 					var newMax = Number(body);
-					var deferedList = [];
-					for(var i = _lastItem ; i < newMax; i++) {
-						deferedList.push(q.defer());
+					var deferedList = new Array(newMax - _lastItem);
+					for(var i = 0 ; i < newMax - _lastItem; i++) {
+						deferedList[i] = q.defer();
 					}
 					var promiseList = deferedList.map(function(d) {return d.promise});
 					deferedList.forEach(function(promise, index) {
@@ -90,7 +90,7 @@ var Scraper = function (settings) {
 								} else {
 									_scrapeUp(news.parent).then(function(story){
 										news.storyUrl = story.url;
-										defered.resolve(news);
+										promise.resolve(news);
 									})
 								}
 							}
