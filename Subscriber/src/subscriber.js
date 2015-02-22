@@ -121,7 +121,11 @@ var Subscriber = function (dbOptions, mailOptions) {
 			if(err) {
 				defered.reject(err);
 			} else {
-				defered.resolve(status.n == 1);
+				if(status.n == 1) {
+					defered.resolve();
+				} else {
+					defered.reject("Subscriber with ID: " + id + " not unsubscribed.");
+				}
 			}
 		});
 
